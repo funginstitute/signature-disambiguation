@@ -25,6 +25,12 @@ Claims 1, 3, 5, 12-13 are rejected under 35 U.S.C. 102(b) as being anticipated b
 For each of these PDFs, we want to get the patents that *block* other patents
 (in this case, US20040250593).
 
+### Packages Required
+
+* ghostscript
+* parallel
+* tesseract
+
 ## Disambiguation through Signatures
 
 We want to be able to disambiguate inventors by identifying their signatures in
