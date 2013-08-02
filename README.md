@@ -31,6 +31,10 @@ For each of these PDFs, we want to get the patents that *block* other patents
 * parallel
 * tesseract
 
+Also make sure you run `pip install -r requirements.txt` to get the required
+Python packages. After installing the pip packages, to install the needed NLTK
+data (this won't be installed by pip), run `python -m nltk.downloader all`.
+
 ## Disambiguation through Signatures
 
 We want to be able to disambiguate inventors by identifying their signatures in
