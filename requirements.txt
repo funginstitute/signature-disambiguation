@@ -1,5 +1,6 @@
 Cython
 scikit-image
+scikit-learn
 numpy
 matplotlib
 nltk
