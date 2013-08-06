@@ -4,19 +4,16 @@ Toy library for extracting signature from an image
 """
 import matplotlib.pyplot as plt
 import numpy as np
-from skimage.filter import sobel, canny
-from skimage.feature import corner_harris, corner_subpix, corner_peaks
 from skimage.data import imread
 from skimage.color import rgb2gray
-from skimage.transform import probabilistic_hough
 from skimage.measure import find_contours
+from scipy.spatial import distance
+from sklearn.cluster import DBSCAN
+from itertools import cycle
 import math
 import os
 import sys
 
-from scipy.spatial import distance
-from sklearn.cluster import DBSCAN
-from itertools import cycle
 
 def get_center(pointlist):
     """
