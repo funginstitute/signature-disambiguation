@@ -96,6 +96,7 @@ def iterate(filename, lengths, epsilons, min_samples):
     for length in lengths:
         for eps in epsilons:
             for min_sample in min_samples:
+                print 'using length={0}, eps={1}, min_sample={2}'.format(length, eps, min_sample)
                 contours, lengths = compute_contours(img, length)
                 points = run_dbscan(contours, eps, min_sample)
                 plt.gray()
