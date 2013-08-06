@@ -74,9 +74,9 @@ def run_dbscan(contours, eps=20, min_samples=2):
     """
     pointarray, distances = compute_distance_matrix(contours)
     # run DBSCAN
-    db = DBSCAN(eps=20, min_samples=2).fit(distances)
+    db = DBSCAN(eps=eps, min_samples=min_samples).fit(distances)
     labels =  db.labels_
-
+    print labels
     colors = cycle('bgrcmy')
     for label, color in zip(set(labels), colors):
         if label == -1:
@@ -85,6 +85,22 @@ def run_dbscan(contours, eps=20, min_samples=2):
             if labels[n] == label:
                 plt.plot(point[0], point[1], color=color, marker='o')
     return zip(labels, pointarray)
+
+def iterate(filename, lengths, epsilons, min_samples):
+    """
+    Given 3 lists of values for [length], [eps] and [min_samples],
+    iterates through each of them and does the process above
+    """
+    imagepath = os.path.join(os.getcwd(), filename)
+    img = get_image(imagepath)
+    for length in lengths:
+        for eps in epsilons:
+            for min_sample in min_samples:
+                contours, lengths = compute_contours(img, length)
+                points = run_dbscan(contours, eps, min_sample)
+                plt.gray()
+                plt.imshow(img)
+                plt.savefig('tune/{0}-{1}-{2}.png'.format(length, eps, min_sample))
 
 if __name__=='__main__':
     if len(sys.argv) < 2:
