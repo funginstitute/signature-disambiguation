@@ -79,7 +79,7 @@ def run_dbscan(contours, eps=400, min_samples=3):
     colors = cycle('bgrcmy')
     for label, color in zip(set(labels), colors):
         if label == -1:
-          color = 'k'
+            color = 'k'
         for n, point in enumerate(pointarray):
             if labels[n] == label:
                 plt.plot(point[0], point[1], color=color, marker='o')
