@@ -76,7 +76,6 @@ def run_dbscan(contours, eps=400, min_samples=3):
     # run DBSCAN
     db = DBSCAN(eps=eps, min_samples=min_samples).fit(distances)
     labels =  db.labels_
-    print labels
     colors = cycle('bgrcmy')
     for label, color in zip(set(labels), colors):
         if label == -1:
