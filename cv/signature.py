@@ -67,7 +67,7 @@ def compute_distance_matrix(contours, normalize=False):
         return pointarray, 1 - (D / np.max(D))
     return pointarray, D
 
-def run_dbscan(contours, eps=20, min_samples=2):
+def run_dbscan(contours, eps=400, min_samples=3):
     """
     Given a list of points, runs DBSCAN with the parameters [eps] and [min_samples].
     Returns list of tuples, where each tuple is (label, contour center)
