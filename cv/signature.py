@@ -53,6 +53,9 @@ def compute_contours(img, length=300):
             plt.plot(contour[:, 1], contour[:, 0])
             ret_contours.append(contour)
             ret_lengths.append(contour.shape[0])
+    if not ret_contours:
+        print 'no potential signatures found'
+        sys.exit(0)
     return ret_contours, ret_lengths
 
 def compute_distance_matrix(contours, normalize=False):
@@ -70,7 +73,7 @@ def compute_distance_matrix(contours, normalize=False):
         return pointarray, 1 - (D / np.max(D))
     return pointarray, D
 
-def run_dbscan(contours, eps=400, min_samples=3):
+def run_dbscan(contours, eps=500, min_samples=3):
     """
     Given a list of points, runs DBSCAN with the parameters [eps] and [min_samples].
     Returns list of tuples, where each tuple is (label, contour center)
@@ -116,6 +119,7 @@ def extract_signature(contours, pointlabels):
     # get indices into the contours list from the list of points
     tmp_points = [tuple(x[1]) for x in pointlabels]
     indices = [tmp_points.index(tuple(x)) for x in clusters[bestfit_label]]
+    # compute bounding box coordinates
     minx = miny = float('inf')
     maxx = maxy = float('-inf')
     for index in indices:
@@ -124,10 +128,11 @@ def extract_signature(contours, pointlabels):
         miny = min(miny, min(contour, key=lambda x: x[0])[0])
         maxx = max(maxx, max(contour, key=lambda x: x[1])[1])
         maxy = max(maxy, max(contour, key=lambda x: x[0])[0])
-    maxx += 10
-    maxy += 10
-    minx -= 10
-    miny -= 10
+    # add some breathing room to the box
+    maxx += 5
+    maxy += 5
+    minx -= 5
+    miny -= 5
     x = (minx, maxx, maxx, minx, minx)
     y = (miny, miny, maxy, maxy, miny)
     plt.plot(x, y, '-b', linewidth=2)
@@ -162,7 +167,9 @@ if __name__=='__main__':
     points = run_dbscan(contours)
     extract_signature(contours, points)
 
+    basename = ''.join(imagepath.split('/')[-1].split('.')[:-1])
+
     plt.gray()
     plt.imshow(img)
 
-    plt.savefig('out.png')
+    plt.savefig(basename+'-signature.png')
