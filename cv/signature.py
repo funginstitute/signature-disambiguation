@@ -13,6 +13,7 @@ from scipy import stats
 from sklearn.cluster import DBSCAN
 from itertools import cycle
 from collections import defaultdict
+from PIL import Image
 import math
 import os
 import sys
@@ -139,6 +140,13 @@ def extract_signature(contours, pointlabels):
     plt.gray()
     plt.imshow(img)
     plt.savefig('out.png')
+    return (minx, miny, maxx, maxy)
+
+def output_signature(box, imagepath):
+    img = Image.open(imagepath)
+    box = map(int, box)
+    basename = ''.join(imagepath.split('/')[-1].split('.')[:-1])
+    img.crop(box).save('{0}-signature-only.png'.format(basename))
 
 def iterate(filename, lengths, epsilons, min_samples):
     """
@@ -165,7 +173,8 @@ if __name__=='__main__':
     img = get_image(imagepath)
     contours, lengths = compute_contours(img)
     points = run_dbscan(contours)
-    extract_signature(contours, points)
+    box = extract_signature(contours, points)
+    output_signature(box, imagepath)
 
     basename = ''.join(imagepath.split('/')[-1].split('.')[:-1])
 
