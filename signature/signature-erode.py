@@ -4,7 +4,7 @@ import numpy as np
 from skimage.data import imread
 from skimage import io
 from skimage.color import rgb2gray
-from skimage.filter import hsobel
+from skimage.filter import sobel
 from skimage.measure import find_contours, LineModel
 from scipy.spatial import distance
 from scipy import stats
@@ -22,6 +22,14 @@ from skimage.exposure import rescale_intensity
 
 ## CONSTANTS ##
 CONTOUR_MINLENGTH = 200
+
+def get_mask_from_boundingbox(img, box):
+    """
+    Given a box (minx,miny,maxx,maxy) and an image, returns a mask for that bounding box
+    """
+    mask = np.zeros(img.shape,dtype=np.int)
+    mask[box[1]:box[3],box[0]:box[2]] = np.int(1)
+    return mask > 0.9
 
 def get_center(pointlist):
     """
@@ -78,17 +86,31 @@ def process(filename, plot=False):
     d['diff'] = abs(d[0] - d[1])
     d = d[d['diff'] > d['diff'].mean()]
     contours = [contours[i] for i in d.index]
-    if plot:
-        for contour in contours:
+    # compute bounding boxes for resulting contours
+    boxes = get_boundingboxes(contours)
+    # given a box, does sobel on the bounding box of that block
+    # computes contours within the subimage and returns them
+    def process_block(box):
+        mask = get_mask_from_boundingbox(img,box)
+        sobel_img = sobel(img,mask)
+        contours, lengths = compute_contours(sobel_img)
+        return len(contours),contours,lengths
+    # get all blocks
+    blocks = [process_block(box) for box in boxes]
+    # retrieve the blocks that have the fewest number of contours
+    num_contours = pd.Series(block[0] for block in blocks)
+    num_contours = num_contours[num_contours < num_contours.mean()]
+    # plot only those contours
+    ret_contours = []
+    for block in [blocks[i] for i in num_contours.index]:
+        len_con,contours,lengths = block
+        lengths = pd.Series(lengths)
+        lengths = lengths[lengths > lengths.mean()]
+        for i in lengths.index:
+            contour = contours[i]
+            ret_contours.append(contour)
             plt.plot(contour[:,1],contour[:,0])
-    # get the bounding boxes, then crop the image to those bounding boxes.
-    # For each of the subimages, find contours
-    for box in get_boundingboxes(contours):
-        subimage = img[box[0]: box[2], box[1]: box[3]]
-        subcontours, sublengths = compute_contours(subimage)
-        if subcontours and sublengths:
-            print len(subcontours), max(sublengths), sublengths
-    return contours
+    return ret_contours
 
 def get_boundingboxes(contours, plot=False):
     """
@@ -111,10 +133,21 @@ def get_boundingboxes(contours, plot=False):
         boxes.append( map(int,(minx,miny,maxx,maxy)) )
     return boxes
 
+def get_subimage(imgpath, box, filename):
+    """
+    Takes as argument a box given by [minx, miny, maxx, maxy], an image
+    and a filename. Crops the image and saves the result to filename
+    """
+    img = Image.open(imgpath)
+    box = map(int, box)
+    img.crop(box).save(filename)
+
+
 if __name__ == '__main__':
     plt.gray()
     imagepath = sys.argv[1]
+    f=plt.figure(figsize=(16,12))
     basename = ''.join(imagepath.split('/')[-1].split('.')[:-1])
-    contours = process(imagepath,plot=True)
-    get_boundingboxes(contours,plot=True)
+    contours = process(imagepath,plot=False)
+    get_boundingboxes(contours,plot=False)
     plt.savefig(basename+'-signature.png')
