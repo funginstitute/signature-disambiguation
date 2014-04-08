@@ -45,7 +45,7 @@ def compute_contours(img, length=300):
     ret_contours (list of contours),
     ret_lengths (list of lengths of each contour in ret_contours)
     """
-    contours = find_contours(img, 0.9)
+    contours = find_contours(img, 0.1)
     contour_lengths = [len(x[:, 1]) for x in contours]
     ret_contours = []
     ret_lengths = []
