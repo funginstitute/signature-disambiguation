@@ -4,6 +4,7 @@ from skimage.data import imread
 from skimage import io
 from skimage.color import rgb2gray
 from skimage.measure import find_contours
+from skimage.transform import probabilistic_hough_line
 from itertools import cycle
 from pylab import *
 from PIL import Image
@@ -12,7 +13,9 @@ import shutil
 import sys
 import pandas as pd
 from skimage.morphology import square, erosion
+from skimage.filter import hsobel
 from scipy.spatial.distance import euclidean
+from scipy.signal import convolve2d, convolve
 
 ## CONSTANTS ##
 CONTOUR_MINLENGTH = 200
@@ -124,7 +127,8 @@ def link_contours(contours):
     merged = True
     boxes = map(boundingbox, contours)
     iterations_left = len(boxes)
-    for i in range(20):
+    old_boxes = None
+    for i in range(10*len(boxes)):
         if iterations_left == 0:
             print 'none',i,boxes
             break
@@ -143,14 +147,21 @@ def link_contours(contours):
                 if box1 not in boxes:
                     boxes.append(box1)
                 merged = False
+    print i,len(contours)
     return boxes
                         
-f=plt.figure(figsize=(16,12))
-filename = '7.png'
 def process(filename):
     imagepath = os.path.join(os.getcwd(), filename)
     orig_img = io.imread(filename,True,'pil')
     img = orig_img > 0.9 # binary threshold
+    lines = probabilistic_hough_line(hsobel(img),line_length=200)
+    for l in lines:
+        x0, x1 = l[0][0],l[1][0]
+        y = l[0][1]
+        for x in range(x0,x1):
+            img[y+1,x] = 1
+            img[y,x] = 1
+            img[y-1,x] = 1
     erode_img = erosion(img, square(2))
     contours, lengths = compute_contours(erode_img,0.8)
     lengths = pd.Series(lengths)
