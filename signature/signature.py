@@ -147,7 +147,6 @@ def link_contours(contours):
                 if box1 not in boxes:
                     boxes.append(box1)
                 merged = False
-    print i,len(contours)
     return boxes
                         
 def process(filename):
@@ -187,12 +186,27 @@ def process(filename):
     imshow(erode_img)
     return retboxes, contours
 
+def output(contours,shape=(126,126),outputfile='signatures.csv'):
+    """
+    Take the set of all contours that we have identified as possible signatures
+    and resize them all into a canonical shape (the best shape and the best
+    method for doing so have yet to be determined) so we can train a classifier
+    on the pixels.  We want to do unsupervised clustering to separate the
+    signatures from non-signatures
+    """
+    from scipy import resize
+    with open(outputfile,'a') as f:
+        for c in contours:
+            newc = map(int, resize(c, shape).flatten())
+            f.write('\t'.join(map(str, newc))+'\n')
+
 if __name__=='__main__':
     plt.gray()
     f = plt.figure(figsize=(16,12))
     filename = sys.argv[1]
     basename = ''.join(filename.split('/')[-1].split('.')[:-1])
     boxes, contours = process(filename)
+    output(contours)
     plt.savefig(basename+'-signature.png')
     if len(sys.argv) > 2:
         shutil.move(basename+'-signature.png',sys.argv[2])
